@@ -235,12 +235,12 @@ namespace AMFairy
                 }
             }
 #if DEBUG
-            MessageBox.Show(similarity.First(item => item.Value == similarity.Values.Min()).Key);
+            //MessageBox.Show(similarity.First(item => item.Value == similarity.Values.Min()).Key);
 #endif
             return similarity.First(item => item.Value == similarity.Values.Min()).Key;
         }
 
-        private Point findAnswerPoint(Problem pro)
+        private KeyValuePair<Point,double> findAnswerPoint(Problem pro)
         {
             Bitmap[] bmps = {
                 Crop(pro.branchA),
@@ -254,37 +254,40 @@ namespace AMFairy
             {
                 double sim = ImageAnalysis.getVerticalSimilarity(bmps[i], ans);
 #if DEBUG
-                MessageBox.Show(sim.ToString());
+                //MessageBox.Show(sim.ToString());
 #endif
                 similarity.Add(i, sim);
             }
-            int index = similarity.First(item => item.Value == similarity.Values.Min()).Key;
-            switch (index)
+            KeyValuePair<int, double> index = similarity.First(item => item.Value == similarity.Values.Min());
+            double sum = similarity.Sum(item => item.Value);
+            switch (index.Key)
             {
                 case 0:
-                    return pro.A;
+                    return new KeyValuePair<Point, double>(pro.A, 1 - 3 * index.Value / (sum - index.Value));
                 case 1:
-                    return pro.B;
+                    return new KeyValuePair<Point, double>(pro.B, 1 - 3 * index.Value / (sum - index.Value));
                 case 2:
-                    return pro.C;
+                    return new KeyValuePair<Point, double>(pro.C, 1 - 3 * index.Value / (sum - index.Value));
                 case 3:
-                    return pro.D;
+                    return new KeyValuePair<Point, double>(pro.D, 1 - 3 * index.Value / (sum - index.Value));
                 default:
                     throw new Exception("Internal Error!");
             }
         }
 
-        public List<Point> getAnswerPoints()
+        public Dictionary<Point, double> getAnswerPoints()
         {
-            List<Point> lsp = new List<Point>();
+            Dictionary<Point, double> lsp = new Dictionary<Point, double>();
             foreach(Problem pro in problemList)
             {
                 pro.Id = findProblemId(pro);
-                Point ansp = findAnswerPoint(pro);
-                lsp.Add(new Point(
-                    ansp.X - webBrowserReference.X,
-                    ansp.Y - webBrowserReference.Y
-                    ));
+                KeyValuePair<Point, double> ansp = findAnswerPoint(pro);
+                lsp.Add(
+                    new Point(
+                    ansp.Key.X - webBrowserReference.X,
+                    ansp.Key.Y - webBrowserReference.Y
+                    ),
+                    ansp.Value);
             }
             return lsp;
         }

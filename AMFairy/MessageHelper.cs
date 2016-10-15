@@ -6,22 +6,25 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
+using System.Drawing;
 
 namespace AMFairy
 {
     class MessageHelper
     {
-        static public void sendMessage(List<Point> pts)
+        static public void sendMessage(List<System.Drawing.Point> pts)
         {
-            foreach(Point pt in pts)
+            foreach(System.Drawing.Point pt in pts)
             {
                 sendMessage(pt);
             }
         }
-        static private void sendMessage(Point pt)
+        static private void sendMessage(System.Drawing.Point pt)
         {
             //获取测试程序的窗体句柄
-            IntPtr mainWnd = FindWindow(null, "未来代码研究所");
+            IntPtr mainWnd = FindWindow(null, "学生窗口 - 大学数学个性化定制练习系统"); 
+            //IntPtr mainWnd = FindWindow(null, "学生窗口");
             List<IntPtr> listWnd = new List<IntPtr>();
             //获取窗体上所有控件的句柄
             EnumChildWindows(mainWnd, new CallBack(delegate (IntPtr hwnd, int _lParam)
@@ -51,18 +54,13 @@ namespace AMFairy
             int looper = 0;
             foreach (IntPtr item in listWnd)
             {
-                if (looper == 4)
+                StringBuilder className = new StringBuilder(100);
+                GetClassName(item, className, className.Capacity);
+                if(className.ToString() == "Internet Explorer_Server")
                 {
                     int x = (int)pt.X; // X coordinate of the click 
                     int y = (int)pt.Y; // Y coordinate of the click 
                     IntPtr handle = item;
-                    //StringBuilder className = new StringBuilder(100);
-                    //while (className.ToString() != "Internet Explorer_Server") // The class control for the browser 
-                    //{
-                    //    handle = GetWindow(handle, 5); // Get a handle to the child window 
-                    //    GetClassName(handle, className, className.Capacity);
-                    //}
-
                     IntPtr lParam = (IntPtr)((y << 16) | x); // The coordinates 
                     IntPtr wParam = IntPtr.Zero; // Additional parameters for the click (e.g. Ctrl) 
                     const int downCode = 0x201; // Left click down code 
