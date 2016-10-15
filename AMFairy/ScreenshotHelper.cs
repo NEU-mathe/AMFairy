@@ -16,6 +16,7 @@ namespace AMFairy
         int x1, x2, x3, x4, x5;
         int y1, y2, y3, y4;
         string id;
+        const int border = 0;
         public Problem(int x1, int x2, int x3, int x4, int x5, int y1, int y2, int y3, int y4)
         {
             this.x1 = x1; this.x2 = x2; this.x3 = x3; this.x4 = x4; this.x5 = x5;
@@ -25,35 +26,35 @@ namespace AMFairy
         {
             get
             {
-                return new Rectangle(x2 + 1, y1 + 1, x5 - x2 - 1, y2 - y1 - 1);
+                return new Rectangle(x2 + border, y1 + border, x5 - x2 + 1 - 2 * border, y2 - y1 + 1 - 2 * border);
             }
         }
         public Rectangle branchA
         {
             get
             {
-                return new Rectangle(x2 + 1, y2 + 1, x3 - x2 - 1, y3 - y2 - 1);
+                return new Rectangle(x2 + border, y2 + border, x3 - x2 + 1 - 2 * border, y3 - y2 + 1 - 2 * border);
             }
         }
         public Rectangle branchB
         {
             get
             {
-                return new Rectangle(x4 + 1, y2 + 1, x5 - x4 - 1, y3 - y2 - 1);
+                return new Rectangle(x4 + border, y2 + border, x5 - x4 + 1 - 2 * border, y3 - y2 + 1 - 2 * border);
             }
         }
         public Rectangle branchC
         {
             get
             {
-                return new Rectangle(x2 + 1, y3 + 1, x3 - x2 - 1, y4 - y3 - 1);
+                return new Rectangle(x2 + border, y3 + border, x3 - x2 + 1 - 2 * border, y4 - y3 + 1 - 2 * border);
             }
         }
         public Rectangle branchD
         {
             get
             {
-                return new Rectangle(x4 + 1, y3 + 1, x5 - x4 - 1, y4 - y3 - 1);
+                return new Rectangle(x4 + border, y3 + border, x5 - x4 + 1 - 2 * border, y4 - y3 + 1 - 2 * border);
             }
         }
         public Point A

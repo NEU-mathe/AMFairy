@@ -99,16 +99,44 @@ namespace GraphicsHelper
         {
             List<int> verHisList = verticalHistogram.ToList();
             verHisList.RemoveAll(item => item == 0);
+            verHisList.RemoveAll(item => item == baseRes.Height);
+            if (verHisList.Count == 0)
+                return new Bitmap(10,10);
             Bitmap ret = new Bitmap(verHisList.Count, baseRes.Height);
             for(int iraw = 0, i = 0; iraw < baseRes.Width; ++iraw)
             {
-                if(verticalHistogram[iraw] != 0)
+                if(verticalHistogram[iraw] != 0 && verticalHistogram[iraw] != baseRes.Height)
                 {
                     for(int j = 0; j < baseRes.Height; ++j)
                     {
                         ret.SetPixel(i, j, baseRes.GetPixel(iraw, j));
                     }
                     ++i;
+                }
+            }
+            return ret;
+        }
+        static public Bitmap removeBlankHorizontalLines(Bitmap baseRes)
+        {
+            return removeBlankHorizontalLines(baseRes, getHorizontalHistogram(baseRes));
+        }
+        static public Bitmap removeBlankHorizontalLines(Bitmap baseRes, int[] horizontalHistogram)
+        {
+            List<int> horHisList = horizontalHistogram.ToList();
+            horHisList.RemoveAll(item => item == 0);
+            horHisList.RemoveAll(item => item == baseRes.Width);
+            if (horHisList.Count == 0)
+                return new Bitmap(10, 10);
+            Bitmap ret = new Bitmap(baseRes.Width, horHisList.Count);
+            for (int jraw = 0, j = 0; jraw < baseRes.Height; ++jraw)
+            {
+                if (horizontalHistogram[jraw] != 0 && horizontalHistogram[jraw] != baseRes.Width)
+                {
+                    for (int i = 0; i < baseRes.Width; ++i)
+                    {
+                        ret.SetPixel(i, j, baseRes.GetPixel(i, jraw));
+                    }
+                    ++j;
                 }
             }
             return ret;
@@ -148,6 +176,8 @@ namespace GraphicsHelper
         {
             shiyan = binaryzation(shiyan);
             duizhao = binaryzation(duizhao);
+            shiyan = removeBlankHorizontalLines(shiyan);
+            duizhao = removeBlankHorizontalLines(duizhao);
             shiyan = removeBlankVerticalLines(shiyan);
             duizhao = removeBlankVerticalLines(duizhao);
             shiyan = ResizeImage(shiyan, duizhao.Width, shiyan.Height);
