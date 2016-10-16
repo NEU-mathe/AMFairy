@@ -90,22 +90,24 @@ namespace GraphicsHelper
             return horizontalHistogram;
         }
 
-        static public Bitmap removeBlankVerticalLines(Bitmap baseRes)
+        static public Bitmap removeBlankVerticalLines(Bitmap baseRes, bool black)
         {
-            return removeBlankVerticalLines(baseRes, getVerticalHistogram(baseRes));
+            return removeBlankVerticalLines(baseRes, getVerticalHistogram(baseRes), black);
         }
 
-        static public Bitmap removeBlankVerticalLines(Bitmap baseRes, int[] verticalHistogram)
+        static public Bitmap removeBlankVerticalLines(Bitmap baseRes, int[] verticalHistogram, bool black)
         {
             List<int> verHisList = verticalHistogram.ToList();
-            verHisList.RemoveAll(item => item == 0);
-            verHisList.RemoveAll(item => item == baseRes.Height);
+            if(!black)
+                verHisList.RemoveAll(item => item == 0);
+            else
+                verHisList.RemoveAll(item => item == baseRes.Height);
             if (verHisList.Count == 0)
                 return new Bitmap(10,10);
             Bitmap ret = new Bitmap(verHisList.Count, baseRes.Height);
             for(int iraw = 0, i = 0; iraw < baseRes.Width; ++iraw)
             {
-                if(verticalHistogram[iraw] != 0 && verticalHistogram[iraw] != baseRes.Height)
+                if((!black && verticalHistogram[iraw] != 0) || (black && verticalHistogram[iraw] != baseRes.Height))
                 {
                     for(int j = 0; j < baseRes.Height; ++j)
                     {
@@ -116,21 +118,23 @@ namespace GraphicsHelper
             }
             return ret;
         }
-        static public Bitmap removeBlankHorizontalLines(Bitmap baseRes)
+        static public Bitmap removeBlankHorizontalLines(Bitmap baseRes, bool black)
         {
-            return removeBlankHorizontalLines(baseRes, getHorizontalHistogram(baseRes));
+            return removeBlankHorizontalLines(baseRes, getHorizontalHistogram(baseRes), black);
         }
-        static public Bitmap removeBlankHorizontalLines(Bitmap baseRes, int[] horizontalHistogram)
+        static public Bitmap removeBlankHorizontalLines(Bitmap baseRes, int[] horizontalHistogram, bool black)
         {
             List<int> horHisList = horizontalHistogram.ToList();
-            horHisList.RemoveAll(item => item == 0);
-            horHisList.RemoveAll(item => item == baseRes.Width);
+            if(!black)
+                horHisList.RemoveAll(item => item == 0);
+            else
+                horHisList.RemoveAll(item => item == baseRes.Width);
             if (horHisList.Count == 0)
                 return new Bitmap(10, 10);
             Bitmap ret = new Bitmap(baseRes.Width, horHisList.Count);
             for (int jraw = 0, j = 0; jraw < baseRes.Height; ++jraw)
             {
-                if (horizontalHistogram[jraw] != 0 && horizontalHistogram[jraw] != baseRes.Width)
+                if ((!black && horizontalHistogram[jraw] != 0) || (black && horizontalHistogram[jraw] != baseRes.Width))
                 {
                     for (int i = 0; i < baseRes.Width; ++i)
                     {
@@ -176,10 +180,14 @@ namespace GraphicsHelper
         {
             shiyan = binaryzation(shiyan);
             duizhao = binaryzation(duizhao);
-            shiyan = removeBlankHorizontalLines(shiyan);
-            duizhao = removeBlankHorizontalLines(duizhao);
-            shiyan = removeBlankVerticalLines(shiyan);
-            duizhao = removeBlankVerticalLines(duizhao);
+            shiyan = removeBlankHorizontalLines(shiyan, true);
+            duizhao = removeBlankHorizontalLines(duizhao, true);
+            shiyan = removeBlankVerticalLines(shiyan, true);
+            duizhao = removeBlankVerticalLines(duizhao, true);
+            shiyan = removeBlankHorizontalLines(shiyan, false);
+            duizhao = removeBlankHorizontalLines(duizhao, false);
+            shiyan = removeBlankVerticalLines(shiyan, false);
+            duizhao = removeBlankVerticalLines(duizhao, false);
             shiyan = ResizeImage(shiyan, duizhao.Width, shiyan.Height);
             shiyan = binaryzation(shiyan);
 #if DEBUG
