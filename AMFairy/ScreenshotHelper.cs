@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -113,7 +114,7 @@ namespace AMFairy
 
             baseRes = new Bitmap(baseImage);
 
-            Dictionary<int, int> verLines_raw = new Dictionary<int, int>();
+            HashSet<int> verLines_raw = new HashSet<int>();
             HashSet<int> horLines_raw = new HashSet<int>();
 
             baseRes = ImageAnalysis.binaryzation(baseRes);
@@ -124,10 +125,10 @@ namespace AMFairy
             for (int i = 0; i < baseRes.Width; i++)
             {
                 if (baseVertical[i] > baseRes.Height / 4)
-                    verLines_raw.Add(i, baseVertical[i]);
+                    verLines_raw.Add(i);
             }
 
-            int tableWidth = verLines_raw.Max(item => item.Value) - verLines_raw.Min(item => item.Value);
+            int tableWidth = verLines_raw.Max() - verLines_raw.Min();
 
             //获取水平线
             for (int j = 0; j < baseRes.Height; j++)
@@ -137,7 +138,6 @@ namespace AMFairy
             }
 
             //合并连续区段
-            Dictionary<int, int> verLines_dic = new Dictionary<int, int>();
             
             int temp = 0;
             foreach (int i in horLines_raw)
@@ -149,29 +149,67 @@ namespace AMFairy
             horLines.Add(temp);
             horLines.Remove(0);
             horLines.Sort();
-            KeyValuePair<int, int> kvtemp = new KeyValuePair<int, int>(0, 0);
-            foreach (KeyValuePair<int, int> kv in verLines_raw)
+            temp = 0;
+            foreach (int i in verLines_raw)
             {
-                if (kv.Key - kvtemp.Key != 1)
-                    verLines_dic.Add(kvtemp.Key, kvtemp.Value);
-                kvtemp = kv;
+                if (i - temp != 1)
+                    verLines.Add(temp);
+                temp = i;
             }
-            verLines_dic.Add(kvtemp.Key, kvtemp.Value);
-            verLines_dic.Remove(0);
+            verLines.Add(temp);
+            verLines.Remove(0);
 
-            //铅垂线只保留六根
-            verLines_dic = verLines_dic.OrderByDescending(item => item.Value).ToDictionary(item => item.Key, item => item.Value);
-            int cnt = 0;
-            foreach (KeyValuePair<int, int> kv in verLines_dic)
+            //顶点矩阵并筛选铅垂线
+            int[,] vertexs = new int[verLines.Count, horLines.Count];
+            for(int i = verLines.Count - 1; i >= 0; --i)
             {
-                if (cnt >= 6)
-                    break;
-                verLines.Add(kv.Key);
-                cnt++;
+                int sum = 0;
+                for(int j = horLines.Count - 1; j >= 0; --j)
+                {
+                    int x = verLines[i], y = horLines[j];
+                    int cnt = 0;
+                    if (x - 1 >= 0 && y - 1 >= 0 && x + 1 < baseRes.Width && y + 1 < baseRes.Height)
+                    {
+                        if (baseRes.GetPixel(x - 1, y).B == 0)
+                            ++cnt;
+                        if (baseRes.GetPixel(x + 1, y).B == 0)
+                            ++cnt;
+                        if (baseRes.GetPixel(x, y - 1).B == 0)
+                            ++cnt;
+                        if (baseRes.GetPixel(x, y + 1).B == 0)
+                            ++cnt;
+                    }
+                    if (cnt > 2)
+                    {
+                        vertexs[i, j] = 1;
+                        ++sum;
+                    }
+                    else
+                        vertexs[i, j] = 0;
+                }
+                if (sum < horLines.Count / 4)
+                {
+                    verLines.RemoveAt(i);
+                    for (int j = 0; j < horLines.Count; ++j)
+                        vertexs[i, j] = 0;
+                }
             }
-            verLines.Sort();
 
-            webBrowserReference = new Point(0, horLines.First());
+            //标准化水平线
+            for (int j = horLines.Count - 1; j >= 0; --j)
+            {
+                int sum = 0;
+                for (int i = verLines.Count - 1; i >= 0; --i)
+                {
+                    if (vertexs[i, j] == 1)
+                        ++sum;
+                }
+                if (sum < verLines.Count / 3)
+                    horLines.RemoveAt(j);
+            }
+
+            webBrowserReference.X = 0;
+            webBrowserReference.Y = horLines[0];
 
             //寻找奇异顶点
             foreach (int j in horLines)
@@ -179,24 +217,63 @@ namespace AMFairy
                 foreach (int i in verLines)
                 {
                     int statistics = 0;
-                    for (int k = 1; k <= 4; ++k)
+                    for (int k = 1; k <= 2; ++k)
                     {
                         //上面没有线 下面有线
                         if (j - k >= 0 && baseRes.GetPixel(i, j - k).R > 127
                             && j + k < baseRes.Height && baseRes.GetPixel(i, j + k).R < 127)
                             ++statistics;
                     }
-                    if (statistics > 2)
+                    if (statistics > 1)
                         strangePoints.Add(new System.Drawing.Point(i, j));
                 }
             }
+
+#if DEBUG
+            //调试输出BaseMap
+            string horLineStr = "", verLineStr = "", strangePointStr = "";
+
+            Bitmap baseMap = new Bitmap(baseRes.Width, baseRes.Height);
+            foreach (int j in horLines)
+            {
+                for (int i = 0; i < baseRes.Width; ++i)
+                {
+                    Color newColor = Color.FromArgb(255, 255, 255);
+                    baseMap.SetPixel(i, j, newColor);
+                }
+                horLineStr += j.ToString() + ", ";
+            }
+            foreach (int i in verLines)
+            {
+                for (int j = 0; j < baseRes.Height; ++j)
+                {
+                    Color newColor = Color.FromArgb(255, 255, 255);
+                    baseMap.SetPixel(i, j, newColor);
+                }
+                verLineStr += i.ToString() + ", ";
+            }
+            foreach (System.Drawing.Point pt in strangePoints)
+            {
+                Color newColor = Color.FromArgb(255, 0, 0);
+                baseMap.SetPixel(pt.X, pt.Y, newColor);
+                strangePointStr += "(" + pt.X.ToString() + ", " + pt.Y.ToString() + "), ";
+            }
+
+            //MessageBox.Show(horLineStr, "HorLines");
+            //MessageBox.Show(verLineStr, "VerLines");
+            //MessageBox.Show(strangePointStr, "strangePoints");
+
+            baseRes.Save("baseImage.png", ImageFormat.Png);
+            baseMap.Save("baseMap.png", ImageFormat.Png);
+#endif
 
             //裁剪
             for (int i = 0; i + 2 < strangePoints.Count;)
             {
                 if (strangePoints[i + 1].Y == strangePoints[i + 2].Y
                     && strangePoints[i + 1].Y - strangePoints[i].Y > 1
-                    && verLines.Max() - strangePoints[i].X - 1 > 1)
+                    && verLines.Max() - strangePoints[i].X - 1 > 1
+                    && horLines.Find(item => item > horLines.Find(item2 => item2 > strangePoints[i + 1].Y)) > 0)
                 {
                     Problem pro = new Problem(verLines.FindLast(item => item < strangePoints[i].X),
                         strangePoints[i].X,

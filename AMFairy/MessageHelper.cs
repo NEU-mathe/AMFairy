@@ -60,13 +60,22 @@ namespace AMFairy
                 {
                     int x = (int)pt.X; // X coordinate of the click 
                     int y = (int)pt.Y; // Y coordinate of the click 
-                    IntPtr handle = item;
-                    IntPtr lParam = (IntPtr)((y << 16) | x); // The coordinates 
-                    IntPtr wParam = IntPtr.Zero; // Additional parameters for the click (e.g. Ctrl) 
-                    const int downCode = 0x201; // Left click down code 
-                    const int upCode = 0x202; // Left click up code 
-                    SendMessage(handle, downCode, wParam, lParam); // Mouse button down 
-                    SendMessage(handle, upCode, wParam, lParam); // Mouse button up
+#if DEBUG
+                    //MessageBox.Show("X:" + x + ", Y:" + y);
+#endif
+                    //for(int i = x - 3; i <= x + 3; ++i)
+                    //{
+                    //    for(int j = y - 3; j <= y + 3; ++j)
+                    //    {
+                            IntPtr handle = item;
+                            IntPtr lParam = (IntPtr)((y << 16) | x); // The coordinates 
+                            IntPtr wParam = IntPtr.Zero; // Additional parameters for the click (e.g. Ctrl) 
+                            const int downCode = 0x201; // Left click down code 
+                            const int upCode = 0x202; // Left click up code 
+                            SendMessage(handle, downCode, wParam, lParam); // Mouse button down 
+                            SendMessage(handle, upCode, wParam, lParam); // Mouse button up
+                    //    }
+                    //}
                 }
                 looper++;
             }
