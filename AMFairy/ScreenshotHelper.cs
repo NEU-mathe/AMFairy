@@ -137,25 +137,26 @@ namespace AMFairy
                 }
                 baseVertical[i] += succession * succession;
             }
-            int[] baseHorizontal = new int[baseRes.Height];
-            for (int j = 0; j < baseRes.Height; j++)
-            {
-                baseHorizontal[j] = 0;
-                int succession = 0;
-                for (int i = 0; i < baseRes.Width; i++)
-                {
-                    //获取该点的像素的RGB的颜色
-                    Color color = baseRes.GetPixel(i, j);
-                    if (color.R == 0)
-                        ++succession;
-                    else
-                    {
-                        baseHorizontal[j] += succession * succession;
-                        succession = 0;
-                    }
-                }
-                baseHorizontal[j] += succession * succession;
-            }
+            int[] baseHorizontal = ImageAnalysis.getHorizontalHistogram(baseRes);
+            //int[] baseHorizontal = new int[baseRes.Height];
+            //for (int j = 0; j < baseRes.Height; j++)
+            //{
+            //    baseHorizontal[j] = 0;
+            //    int succession = 0;
+            //    for (int i = 0; i < baseRes.Width; i++)
+            //    {
+            //        //获取该点的像素的RGB的颜色
+            //        Color color = baseRes.GetPixel(i, j);
+            //        if (color.R == 0)
+            //            ++succession;
+            //        else
+            //        {
+            //            baseHorizontal[j] += succession * succession;
+            //            succession = 0;
+            //        }
+            //    }
+            //    baseHorizontal[j] += succession * succession;
+            //}
 
             //获取铅垂线
             for (int i = 0; i < baseRes.Width; i++)
@@ -169,7 +170,7 @@ namespace AMFairy
             //获取水平线
             for (int j = 0; j < baseRes.Height; j++)
             {
-                if (baseHorizontal[j] > tableWidth * tableWidth / 4)
+                if (baseHorizontal[j] > tableWidth / 2)
                     horLines_raw.Add(j);
             }
 
