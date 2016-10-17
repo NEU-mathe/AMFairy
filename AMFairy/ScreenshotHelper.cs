@@ -118,13 +118,49 @@ namespace AMFairy
             HashSet<int> horLines_raw = new HashSet<int>();
 
             baseRes = ImageAnalysis.binaryzation(baseRes);
-            int[] baseVertical = ImageAnalysis.getVerticalHistogram(baseRes);
-            int[] baseHorizontal = ImageAnalysis.getHorizontalHistogram(baseRes);
+            int[] baseVertical = new int[baseRes.Width];
+            for (int i = 0; i < baseRes.Width; i++)
+            {
+                baseVertical[i] = 0;
+                int succession = 0;
+                for (int j = 0; j < baseRes.Height; j++)
+                {
+                    //获取该点的像素的RGB的颜色
+                    Color color = baseRes.GetPixel(i, j);
+                    if (color.R == 0)
+                        ++succession;
+                    else
+                    {
+                        baseVertical[i] += succession * succession;
+                        succession = 0;
+                    }
+                }
+                baseVertical[i] += succession * succession;
+            }
+            int[] baseHorizontal = new int[baseRes.Height];
+            for (int j = 0; j < baseRes.Height; j++)
+            {
+                baseHorizontal[j] = 0;
+                int succession = 0;
+                for (int i = 0; i < baseRes.Width; i++)
+                {
+                    //获取该点的像素的RGB的颜色
+                    Color color = baseRes.GetPixel(i, j);
+                    if (color.R == 0)
+                        ++succession;
+                    else
+                    {
+                        baseHorizontal[j] += succession * succession;
+                        succession = 0;
+                    }
+                }
+                baseHorizontal[j] += succession * succession;
+            }
 
             //获取铅垂线
             for (int i = 0; i < baseRes.Width; i++)
             {
-                if (baseVertical[i] > baseRes.Height / 4)
+                if (baseVertical[i] > baseRes.Height * baseRes.Height / 32)
                     verLines_raw.Add(i);
             }
 
@@ -133,7 +169,7 @@ namespace AMFairy
             //获取水平线
             for (int j = 0; j < baseRes.Height; j++)
             {
-                if (baseHorizontal[j] > tableWidth / 2)
+                if (baseHorizontal[j] > tableWidth * tableWidth / 4)
                     horLines_raw.Add(j);
             }
 
