@@ -86,6 +86,19 @@ namespace AMFairy
         private void Form1_Load(object sender, EventArgs e)
         {
             this.notifyIcon1.Visible = true;
+            ExamQueryForm eqf = new ExamQueryForm(this);
+            eqf.ShowDialog();
+        }
+
+        public void showReadyMsg()
+        {
+            notifyIcon1.BalloonTipText = "就绪";
+            notifyIcon1.ShowBalloonTip(1000);
+        }
+
+        private void Form1_Shown(object sender, EventArgs e)
+        {
+            this.Hide();
         }
     }
 }
