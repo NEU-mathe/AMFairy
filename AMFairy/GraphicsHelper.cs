@@ -12,7 +12,7 @@ namespace GraphicsHelper
     {
         static public Bitmap binaryzation(Bitmap baseRes)
         {
-            int limit = 200;
+            int limit = 127;
             for (int i = 0; i < baseRes.Width; i++)
             {
                 for (int j = 0; j < baseRes.Height; j++)
