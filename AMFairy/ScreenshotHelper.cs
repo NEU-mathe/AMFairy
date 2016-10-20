@@ -101,9 +101,12 @@ namespace AMFairy
         List<Point> strangePoints = new List<Point>();
         List<Problem> problemList = new List<Problem>();
         Point webBrowserReference;
+        Form1 fatherForm;
 
-        public ScreenshotHelper()
+        public ScreenshotHelper(Form1 fatherForm)
         {
+            this.fatherForm = fatherForm;
+
             Image baseImage = new Bitmap(Screen.PrimaryScreen.Bounds.Width, Screen.PrimaryScreen.Bounds.Height);
             Graphics g = Graphics.FromImage(baseImage);
             System.Drawing.Size sz = Screen.AllScreens[0].Bounds.Size;
@@ -331,7 +334,61 @@ namespace AMFairy
         }
         private Bitmap Crop(Rectangle rect)
         {
-            return baseRes.Clone(rect, baseRes.PixelFormat);
+            if(rect.X < 0 || rect.Y < 0 || rect.Width <= 0 || rect.Height <= 0 ||
+                rect.X + rect.Width > baseRes.Width || rect.Y + rect.Height > baseRes.Height)
+            {
+#if !DEBUG
+                if (!System.IO.Directory.Exists(System.IO.Directory.GetCurrentDirectory() + @"\Debug"))
+                {
+                    // 目录不存在，建立目录
+                    System.IO.Directory.CreateDirectory(System.IO.Directory.GetCurrentDirectory() + @"\Debug");
+                }
+                //调试输出BaseMap
+                string horLineStr = "", verLineStr = "", strangePointStr = "";
+
+                Bitmap baseMap = new Bitmap(baseRes.Width, baseRes.Height);
+                foreach (int j in horLines)
+                {
+                    for (int i = 0; i < baseRes.Width; ++i)
+                    {
+                        Color newColor = Color.FromArgb(0, 0, 0);
+                        baseMap.SetPixel(i, j, newColor);
+                    }
+                    horLineStr += j.ToString() + ", ";
+                }
+                foreach (int i in verLines)
+                {
+                    for (int j = 0; j < baseRes.Height; ++j)
+                    {
+                        Color newColor = Color.FromArgb(0, 0, 0);
+                        baseMap.SetPixel(i, j, newColor);
+                    }
+                    verLineStr += i.ToString() + ", ";
+                }
+                foreach (System.Drawing.Point pt in strangePoints)
+                {
+                    Color newColor = Color.FromArgb(255, 0, 0);
+                    baseMap.SetPixel(pt.X, pt.Y, newColor);
+                    strangePointStr += "(" + pt.X.ToString() + ", " + pt.Y.ToString() + "), ";
+                }
+
+                //MessageBox.Show(horLineStr, "HorLines");
+                //MessageBox.Show(verLineStr, "VerLines");
+                //MessageBox.Show(strangePointStr, "strangePoints");
+                string now = Guid.NewGuid().ToString();
+                baseRes.Save(Directory.GetCurrentDirectory() + @"\Debug\" +
+                    now + "_" + rect.X + "_" + rect.Y +
+                    "_" + rect.Width + "_" + rect.Height + "_baseImage.png", ImageFormat.Png);
+                baseMap.Save(Directory.GetCurrentDirectory() + @"\Debug\" +
+                    now + "_" + rect.X + "_" + rect.Y +
+                    "_" + rect.Width + "_" + rect.Height + "_baseMap.png", ImageFormat.Png);
+#endif
+                throw new Exception("不合法的长方形。",new OutOfMemoryException());
+            }
+            else
+            {
+                return baseRes.Clone(rect, baseRes.PixelFormat);
+            }
         }
         private string findProblemId(Problem pro)
         {
@@ -367,23 +424,32 @@ namespace AMFairy
             for(int i = 0; i < bmps.Count(); ++i)
             {
                 double sim = ImageAnalysis.getVerticalSimilarity(bmps[i], ans);
-#if DEBUG
-                //MessageBox.Show(sim.ToString());
-#endif
                 similarity.Add(i, sim);
             }
             KeyValuePair<int, double> index = similarity.First(item => item.Value == similarity.Values.Min());
             double sum = similarity.Sum(item => item.Value);
+            double confidence = 1 - 3 * index.Value / (sum - index.Value);
+            if(confidence != 1)
+            {
+                for (int i = 0; i < bmps.Count(); ++i)
+                {
+#if DEBUG
+                //MessageBox.Show(sim.ToString());
+#else
+                    ImageAnalysis.getVerticalSimilarity(bmps[i], ans, true);
+#endif
+                }
+            }
             switch (index.Key)
             {
                 case 0:
-                    return new KeyValuePair<Point, double>(pro.A, 1 - 3 * index.Value / (sum - index.Value));
+                    return new KeyValuePair<Point, double>(pro.A, confidence);
                 case 1:
-                    return new KeyValuePair<Point, double>(pro.B, 1 - 3 * index.Value / (sum - index.Value));
+                    return new KeyValuePair<Point, double>(pro.B, confidence);
                 case 2:
-                    return new KeyValuePair<Point, double>(pro.C, 1 - 3 * index.Value / (sum - index.Value));
+                    return new KeyValuePair<Point, double>(pro.C, confidence);
                 case 3:
-                    return new KeyValuePair<Point, double>(pro.D, 1 - 3 * index.Value / (sum - index.Value));
+                    return new KeyValuePair<Point, double>(pro.D, confidence);
                 default:
                     throw new Exception("Internal Error!");
             }
@@ -394,14 +460,21 @@ namespace AMFairy
             Dictionary<Point, double> lsp = new Dictionary<Point, double>();
             foreach(Problem pro in problemList)
             {
-                pro.Id = findProblemId(pro);
-                KeyValuePair<Point, double> ansp = findAnswerPoint(pro);
-                lsp.Add(
-                    new Point(
-                    ansp.Key.X - webBrowserReference.X,
-                    ansp.Key.Y - webBrowserReference.Y
-                    ),
-                    ansp.Value);
+                try
+                {
+                    pro.Id = findProblemId(pro);
+                    KeyValuePair<Point, double> ansp = findAnswerPoint(pro);
+                    lsp.Add(
+                        new Point(
+                        ansp.Key.X - webBrowserReference.X,
+                        ansp.Key.Y - webBrowserReference.Y
+                        ),
+                        ansp.Value);
+                }
+                catch
+                {
+                    fatherForm.showExceptionMsg();
+                }
             }
             return lsp;
         }

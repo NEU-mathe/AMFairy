@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -176,7 +177,7 @@ namespace GraphicsHelper
         {
             return getVerticalSimilarity(bmp1, bmp2) < limit;
         }
-        static public double getVerticalSimilarity(Bitmap shiyan, Bitmap duizhao)
+        static public double getVerticalSimilarity(Bitmap shiyan, Bitmap duizhao, bool isDebug = false)
         {
             shiyan = binaryzation(shiyan);
             duizhao = binaryzation(duizhao);
@@ -194,7 +195,24 @@ namespace GraphicsHelper
             shiyan.Save("shiyan.png");
             duizhao.Save("duizhao.png");
 #endif
-            return getVerticalSimilarity(getVerticalHistogram(shiyan), getVerticalHistogram(duizhao));
+            double ret = getVerticalSimilarity(getVerticalHistogram(shiyan), getVerticalHistogram(duizhao));
+      
+            if(isDebug)
+            {
+#if !DEBUG
+                if (!System.IO.Directory.Exists(System.IO.Directory.GetCurrentDirectory() + @"\Debug"))
+                {
+                    // 目录不存在，建立目录
+                    System.IO.Directory.CreateDirectory(System.IO.Directory.GetCurrentDirectory() + @"\Debug");
+                }
+                string now = Guid.NewGuid().ToString();
+                shiyan.Save(Directory.GetCurrentDirectory() + @"\Debug\" +
+                    now + "_shiyan.png");
+                duizhao.Save(Directory.GetCurrentDirectory() + @"\Debug\" +
+                    now + "_duizhao.png");
+#endif
+            }
+            return ret;
         }
     }
 }

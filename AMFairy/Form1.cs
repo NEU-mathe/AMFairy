@@ -54,10 +54,10 @@ namespace AMFairy
         {
             notifyIcon1.BalloonTipText = "Caught.";
             notifyIcon1.ShowBalloonTip(1000);
-            try
-            {
-                Thread th = new Thread(delegate () {
-                    ScreenshotHelper sh = new ScreenshotHelper();
+            Thread th = new Thread(delegate () {
+                try
+                {
+                    ScreenshotHelper sh = new ScreenshotHelper(this);
                     Dictionary<Point, double> pts = sh.getAnswerPoints();
                     MessageHelper.sendMessage(pts.Keys.ToList());
                     string str = "Completed. Confidence: ";
@@ -67,15 +67,15 @@ namespace AMFairy
                     }
                     notifyIcon1.BalloonTipText = str;
                     notifyIcon1.ShowBalloonTip(2000);
-                });
-                th.IsBackground = true;
-                th.Start();
-            }
-            catch
-            {
-                notifyIcon1.BalloonTipText = "Exception occured.";
-                notifyIcon1.ShowBalloonTip(1000);
-            }
+                }
+                catch
+                {
+                    showExceptionMsg();
+                }
+            });
+            th.IsBackground = true;
+            th.Start();
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -93,6 +93,12 @@ namespace AMFairy
         public void showReadyMsg()
         {
             notifyIcon1.BalloonTipText = "就绪";
+            notifyIcon1.ShowBalloonTip(1000);
+        }
+
+        public void showExceptionMsg()
+        {
+            notifyIcon1.BalloonTipText = "Exception occured.";
             notifyIcon1.ShowBalloonTip(1000);
         }
 
