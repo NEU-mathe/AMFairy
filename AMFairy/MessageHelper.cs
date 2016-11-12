@@ -23,8 +23,8 @@ namespace AMFairy
         static private void sendMessage(System.Drawing.Point pt)
         {
             //获取测试程序的窗体句柄
-            IntPtr mainWnd = FindWindow(null, "学生窗口 - 大学数学个性化定制练习系统"); 
-            //IntPtr mainWnd = FindWindow(null, "学生窗口");
+            //IntPtr mainWnd = FindWindow(null, "学生窗口 - 大学数学个性化定制练习系统"); 
+            IntPtr mainWnd = FindWindow(null, "学生窗口");
             List<IntPtr> listWnd = new List<IntPtr>();
             //获取窗体上所有控件的句柄
             EnumChildWindows(mainWnd, new CallBack(delegate (IntPtr hwnd, int _lParam)

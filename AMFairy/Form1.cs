@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 
 namespace AMFairy
 {
@@ -86,8 +88,20 @@ namespace AMFairy
         private void Form1_Load(object sender, EventArgs e)
         {
             this.notifyIcon1.Visible = true;
+            string appdata = Environment.CurrentDirectory;
             ExamQueryForm eqf = new ExamQueryForm(this);
-            eqf.ShowDialog();
+            if (File.Exists(appdata + "/AMFairy.config"))
+            {
+                XmlDocument xmldoc = new XmlDocument();
+                xmldoc.Load(appdata + "/AMFairy.config");
+                XmlNode root = xmldoc.SelectSingleNode(xmldoc.DocumentElement.Name);
+                eqf.do_work(root.SelectSingleNode("subject").InnerText,
+                    root.SelectSingleNode("uid").InnerText,
+                    int.Parse(root.SelectSingleNode("test").InnerText)
+                    );
+            }
+            else
+                eqf.ShowDialog();
         }
 
         public void showReadyMsg()

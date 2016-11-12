@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Net;
+using System.Xml;
 
 namespace AMFairy
 {
@@ -37,9 +38,9 @@ namespace AMFairy
                 comboBox1.SelectedIndex = 0;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        public void do_work(string subj, string usr, int index)
         {
-            string[] str = FakePack.ExamTemplate(subject, textBox1.Text, comboBox1.SelectedIndex);
+            string[] str = FakePack.ExamTemplate(subj, usr, index);
             string[] str2 = FakePack.ExamTemplate(str);
             string str_l = "";
             foreach (string s in str2)
@@ -66,7 +67,7 @@ namespace AMFairy
                             System.IO.Directory.CreateDirectory(System.IO.Directory.GetCurrentDirectory() + @"\Download");
                         }
                         FileStream stream = new FileStream("./" + "Download" + "/" + strArray[i] + ".zip", FileMode.Create);
-                        FtpWebRequest request = (FtpWebRequest)WebRequest.Create(new Uri("ftp://202.118.26.80/ChoiceSource/" + subject + "/" + strArray2[0] + "/" + strArray2[1] + "/" + strArray[i] + ".zip"));
+                        FtpWebRequest request = (FtpWebRequest)WebRequest.Create(new Uri("ftp://202.118.26.80/ChoiceSource/" + subj + "/" + strArray2[0] + "/" + strArray2[1] + "/" + strArray[i] + ".zip"));
                         request.Method = "RETR";
                         request.UseBinary = true;
                         request.Credentials = new NetworkCredential("LoginName", "Q191KPgC");
@@ -96,6 +97,34 @@ namespace AMFairy
                 th.RunWorkerAsync();
             }
             catch (Exception) { }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            string appdata = Environment.CurrentDirectory;
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.CreateXmlDeclaration("1.0", "utf-8", null);
+            XmlElement root = xmldoc.CreateElement("AMFairy");
+            XmlElement node = xmldoc.CreateElement("uid");
+            node.InnerText = textBox1.Text;
+            root.AppendChild(node);
+            node = xmldoc.CreateElement("subject");
+            node.InnerText = subject;
+            root.AppendChild(node);
+            node = xmldoc.CreateElement("test");
+            node.InnerText = comboBox1.SelectedIndex.ToString();
+            root.AppendChild(node);
+            xmldoc.AppendChild(root);
+            xmldoc.Save(appdata + "/AMFairy.config");
+
+            if(MessageBox.Show("配置保存成功！下次启动时配置将自动加载。是否立即开始答题？", "准备好了的小仙女", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                do_work(subject, textBox1.Text, comboBox1.SelectedIndex);
+            }
+            else
+            {
+                Application.Exit();
+            }
 
         }
 
