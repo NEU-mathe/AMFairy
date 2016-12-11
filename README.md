@@ -4,6 +4,10 @@ An Automatic Answering Tool for College Mathmatics Learning-in-process System of
 
 This program is part of the tool kit NEU Mathe.
 
+**Warning: Since the update on Dec 23, 2016, the question resources are stored under encryption. The program doesn't work entirely well any more. **  
+Further maintenance is needed, however, not planned.  
+You can change the download source to an address holding previous resources, or contribute a decrypt module.
+
 我原本的大名是_大学数学过程探索精灵_，区别于_大学数学过程探索系统_(工程代号：AMCaltor)，是更加强大的超级战略武器(不)。
 因为人类总祈望我眷顾他们，所以我还有一个(他们起的)更可爱更美丽的名字————**小仙女**
 
